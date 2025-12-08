@@ -3,7 +3,7 @@ import json
 import time
 from client_redis import get_redis
 
-r = get_radis() #set get_redis i made in client_redis variable
+r = get_redis() #set get_redis i made in client_redis variable
 
 QUEUE_KEY = "trasks_queue"
 CACHE_PREFIX = "result:"#so before our chached results shows result
@@ -17,7 +17,7 @@ def cache_set(job_id,value,ttl=60):
     #setex member function of redis sets a string value for a key 
     #and sets a TTL expiration time in seconds I.E this is 60 seconds
     #converts python object into json string format. since redi can only store strings so anytime you want to store a dict, list or object i must convert
-def enqeueu(job):
+def enqueue(job):
     r.lpush(QUEUE_KEY,json.dump(job))#lpush add to beginning of list
     r.publish("events",json.dumps({"type": "job.enqueued", "job_id": job["id"]}))
 

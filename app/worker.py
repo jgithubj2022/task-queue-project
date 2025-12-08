@@ -3,7 +3,7 @@
 #producers push to task queue
 
 import json
-import client_redis import get_redis
+from client_redis import get_redis
 import time
 
 r = get_redis()
@@ -17,7 +17,7 @@ def cache_result(job_id,value,ttl=120): #lasts 120 seconds
     r.setex(f"result:{job_id}", ttl, json.dumps(value))
 
 def main():
-    print("[WORKER READY] Waiting for task... ;)")
+    print("[WORKER READY] Waiting for task... ;")
     while True:
         _, job_raw = r.brpop(QUEUE_KEY, timeout = 0)
         job = json.loads(job_raw)
@@ -27,10 +27,11 @@ def main():
         try:
             result = do_work(job)
             cache_result(job_id,result)
-            r.publish("events", json.dumps("type" : "job.succeeded", "job_id": job_id))
+            r.publish("events", json.dumps({"type" : "job.succeeded", "job_id": job_id}))
             print(f"[DONE] {job_id} -> {result}")
-        except exception as e:
-            r.publish("events",json.dumps({"type" : "job.failed", "job_id" : job_id}))#"type "is a key, "jobfailed" is a string liter, "job_id" is a key, and job_id is a var for value
+        except Exception as e:
+            r.publish("events",json.dumps({"type" : "job.failed", "job_id" : job_id}))
+            #"aftertype "is a key, "jobfailed" is a string liter, "job_id" is a key, and job_id is a var for value
             print(f"[ERROR] {job_id} : {e}")
     if __name__ == "__main__":
         main()
